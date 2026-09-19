@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="apple-touch-icon" href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='36' fill='%23F4EFE3'/%3E%3Ccircle cx='40' cy='38' r='16' fill='%23D7263D'/%3E%3Crect x='108' y='24' width='26' height='26' fill='%23FFD100' transform='rotate(45 121 37)'/%3E%3Cpolygon points='90,120 60,160 120,160' fill='%231B4F9C'/%3E%3Cellipse cx='90' cy='150' rx='54' ry='8' fill='%23E9E1CC' stroke='%231A1A1A' stroke-width='3'/%3E%3C/svg%3E">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Decimal Time">
+<title>Decimal Time</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,700&display=swap');
+
+:root {
+  --bg: #F4EFE3;
+  --bg2: #FFFFFF;
+  --bg3: #E9E1CC;
+  --ink: #1A1A1A;
+
+  --red: #D7263D;
+  --red-dim: #A11B2C;
+  --red-tint: #F6D3D8;
+  --red-tint2: #EFBEC5;
+
+  --yellow: #FFD100;
+  --yellow-dim: #D1A800;
+  --yellow-tint: #FFF0AD;
+
+  --blue: #1B4F9C;
+  --blue-dim: #123A73;
+  --blue-tint: #DAE4F3;
+  --blue-tint2: #C0D1EA;
+
+  --green: #5C7A42;
+  --green-dim: #435A2F;
+  --green-tint: #DCE6D0;
+  --green-tint2: #C7D6B8;
+
+  --fg: var(--red);
+  --text-dark: #1A1A1A;
+  --border: #1A1A1A;
+}
+
+* {
+  margin:0; padding:0; box-sizing:border-box;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text-dark);
+  font-family: 'Poppins', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2.2rem 1.2rem 6rem;
+  overscroll-behavior: none;
+}
+
+/* Bold Bauhaus geometric backdrop */
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background-image:
+    radial-gradient(circle at 90% 4%, var(--red) 0 46px, transparent 47px),
+    radial-gradient(circle at 90% 4%, transparent 0 60px, var(--yellow) 61px, transparent 100px),
+    linear-gradient(135deg, var(--blue) 0 100%);
+  background-position: 0 0, 0 0, -12% 96%;
+  background-size: 100% 100%, 100% 100%, 220px 220px;
+  background-repeat: no-repeat;
+  opacity: 0.13;
+  pointer-events:none; z-index:0;
+}
+
+/* ── HEADER ── */
+.header { text-align: center; margin-bottom: 1.4rem; z-index: 1; }
+.label-top {
+  font-weight: 800; letter-spacing: 0.28em; font-size: 1.4rem;
+  color: var(--ink); text-transform: uppercase; margin-bottom: 0.3rem;
+}
+.label-sub {
+  font-size: 0.6rem; letter-spacing: 0.3em; color: rgba(26,26,26,0.42);
+  text-transform: uppercase;
+}
+.bauhaus-mark {
+  display: flex; align-items: center; justify-content: center;
+  gap: 0.5rem; margin-top: 0.7rem;
+}
+.mark-circle { width: 16px; height: 16px; border-radius: 50%; background: var(--red); }
+.mark-square { width: 14px; height: 14px; background: var(--yellow); transform: rotate(45deg); }
+.mark-triangle {
+  width: 0; height: 0; border-left: 9px solid transparent; border-right: 9px solid transparent;
+  border-bottom: 16px solid var(--blue);
+}
+
+.app-wrap {
+  z-index: 1; width: 100%; max-width: 380px;
+  display: flex; flex-direction: column; align-items: stretch; gap: 1.1rem;
+}
+.app-wrap.hidden { display: none; }
+
+.card {
+  position: relative;
+  width: 100%; background: var(--bg2); border: 3px solid var(--border);
+  padding: 1.15rem 1.2rem 1.2rem; box-shadow: 4px 4px 0 var(--ink);
+  transition: background 0.2s, color 0.2s;
+}
+.card::before {
+  content: ''; position: absolute; top: -3px; left: -3px; right: -3px; height: 6px;
+  background: var(--accent, var(--red));
+}
+.card-accent-yellow { --accent: var(--yellow); }
+.card-accent-blue { --accent: var(--blue); }
+.card-accent-red { --accent: var(--red); }
+.card-accent-green { --accent: var(--green); }
+
+.section-title {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-size: 0.6rem; letter-spacing: 0.22em; text-transform: uppercase;
+  font-weight: 800; color: var(--ink); margin-bottom: 0.8rem;
+  transition: color 0.2s;
+}
+.section-title::before {
+  content: ''; width: 10px; height: 10px; background: var(--accent, var(--red)); flex-shrink: 0;
+}
+
+/* ── TEXT INPUT ── */
+.text-input {
+  width: 100%; font-family: 'Poppins', sans-serif; font-size: 0.95rem; font-weight: 600;
+  padding: 0.7rem 0.75rem; border: 3px solid var(--border); background: var(--bg2);
+  color: var(--ink); -webkit-user-select: text; user-select: text; appearance: none; -webkit-appearance: none;
+}
+.text-input:focus { outline: none; border-color: var(--red); }
+select.text-input {
+  background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%), linear-gradient(135deg, var(--ink) 50%, transparent 50%);
+  background-position: calc(100% - 20px) center, calc(100% - 14px) center;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+/* ── TOGGLE ── */
+.toggle-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.8rem;
+}
+.toggle-label {
+  font-weight: 700; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink);
+  transition: color 0.2s;
+}
+.switch { position: relative; display: inline-block; width: 46px; height: 26px; flex-shrink: 0; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.switch .slider {
+  position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+  background-color: var(--bg3); border: 2px solid var(--ink); transition: 0.2s;
+}
+.switch .slider::before {
+  position: absolute; content: ''; height: 16px; width: 16px; left: 3px; bottom: 3px;
+  background-color: var(--ink); transition: 0.2s;
+}
+.switch input:checked + .slider { background-color: #fff; border-color: var(--ink); }
+.switch input:checked + .slider::before { background-color: var(--blue); transform: translateX(20px); }
+
+.note-text {
+  margin-top: 0.75rem; font-size: 0.62rem; letter-spacing: 0.03em;
+  line-height: 1.5; color: rgba(26,26,26,0.6); text-align: center;
+  transition: color 0.2s;
+}
+
+/* ── "complete blue block" state when Count Up is toggled on ── */
+#type-card.up-active { background: var(--blue); }
+#type-card.up-active .toggle-label,
+#type-card.up-active .note-text,
+#type-card.up-active .section-title { color: #fff; }
+#type-card.up-active .note-text { color: rgba(255,255,255,0.85); }
+#type-card.up-active .switch .slider { background-color: var(--blue-dim); border-color: #fff; }
+#type-card.up-active .switch input:checked + .slider::before { background-color: #fff; }
+
+/* ── HMS STEPPER ── */
+.duration-preview {
+  font-weight: 800; font-size: clamp(1.6rem, 8vw, 2rem); font-variant-numeric: tabular-nums;
+  color: var(--ink); text-align: center; margin-bottom: 0.9rem;
+}
+.unit-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.4rem;
+  padding: 0.55rem 0; border-bottom: 2px solid var(--bg3);
+}
+.unit-row:last-child { border-bottom: none; }
+.unit-label {
+  font-weight: 700; font-size: 0.64rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: rgba(26,26,26,0.55); width: 58px; flex-shrink: 0;
+}
+.unit-controls { display: flex; align-items: center; gap: 0.35rem; }
+.unit-btn {
+  width: 32px; height: 32px; border: 3px solid var(--border); background: var(--bg2);
+  font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 0.95rem;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.unit-btn:active { background: var(--bg3); }
+.unit-btn.big { background: var(--blue-tint); border-color: var(--blue); color: var(--blue-dim); font-size: 0.62rem; }
+.unit-btn.big:active { background: var(--blue-tint2); }
+.unit-value {
+  font-weight: 800; font-size: 1.05rem; width: 40px; text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── ICON PICKER ── */
+.icon-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
+.icon-btn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.3rem;
+  border: 3px solid var(--border); background: var(--bg2); padding: 0.5rem 0.2rem;
+  cursor: pointer; text-align: center;
+}
+.icon-btn svg { width: 20px; height: 20px; display: block; }
+.icon-btn span { font-size: 0.5rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: rgba(26,26,26,0.6); }
+.icon-btn.selected { background: var(--yellow-tint); border-color: var(--yellow-dim); }
+.icon-btn.none-btn { grid-column: span 4; flex-direction: row; gap: 0.5rem; }
+
+/* ── BUTTONS ── */
+.btn-row { display: flex; gap: 0.6rem; width: 100%; }
+.btn {
+  font-family: 'Poppins', sans-serif; font-size: 0.76rem; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase; padding: 0.75rem 0;
+  cursor: pointer; border: 3px solid var(--border); background: var(--bg2);
+  color: var(--text-dark); transition: all 0.15s; flex: 1; text-align: center;
+}
+.btn:active { background: var(--bg3); }
+.btn:disabled { opacity: 0.5; cursor: default; }
+.btn.btn-primary { background: var(--red); color: #fff; border-color: var(--red); box-shadow: 4px 4px 0 var(--ink); }
+.btn.btn-primary:active { background: var(--red-dim); box-shadow: 1px 1px 0 var(--ink); }
+.btn.btn-blue { background: var(--blue); color: #fff; border-color: var(--blue); box-shadow: 4px 4px 0 var(--ink); }
+.btn.btn-blue:active { background: var(--blue-dim); box-shadow: 1px 1px 0 var(--ink); }
+.btn.btn-danger-light { border-color: var(--red); color: var(--red-dim); background: var(--red-tint); }
+.btn.btn-danger-light:active { background: var(--red-tint2); }
+
+/* ── TIMER LIST ── */
+.timer-list { display: flex; flex-direction: column; gap: 1.1rem; width: 100%; }
+.timer-card { display: flex; flex-direction: column; gap: 0.7rem; }
+.timer-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.6rem; }
+.timer-name-row { display: flex; align-items: center; gap: 0.45rem; }
+.timer-icon svg { width: 18px; height: 18px; display: block; flex-shrink: 0; }
+.timer-name {
+  font-weight: 800; font-size: 1rem; color: var(--ink); word-break: break-word;
+  -webkit-user-select: text; user-select: text;
+}
+.timer-delete {
+  flex-shrink: 0; width: 28px; height: 28px; border: 3px solid var(--border); background: var(--bg2);
+  font-weight: 800; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: rgba(26,26,26,0.55);
+}
+.timer-delete:active { background: var(--red-tint); border-color: var(--red); color: var(--red-dim); }
+
+.timer-badge {
+  display: inline-flex; align-self: flex-start; font-size: 0.56rem; font-weight: 800;
+  letter-spacing: 0.16em; text-transform: uppercase; padding: 0.25rem 0.55rem;
+  border: 2px solid var(--border); margin-top: 0.3rem;
+}
+.timer-badge.down { background: var(--red-tint); border-color: var(--red); color: var(--red-dim); }
+.timer-badge.up { background: var(--blue-tint); border-color: var(--blue); color: var(--blue-dim); }
+.timer-badge.finished { background: var(--yellow-tint); border-color: var(--yellow-dim); color: var(--yellow-dim); }
+
+.timer-readout {
+  font-weight: 800; font-size: clamp(1.8rem, 10vw, 2.3rem); font-variant-numeric: tabular-nums;
+  text-align: center; color: var(--ink); line-height: 1;
+}
+.timer-readout.down { color: var(--red-dim); }
+.timer-readout.up { color: var(--blue-dim); }
+.timer-readout.finished { color: var(--yellow-dim); }
+
+.timer-progress-track { width: 100%; height: 10px; border: 2px solid var(--ink); background: var(--bg3); }
+.timer-progress-fill { height: 100%; background: var(--red); transition: width 0.2s linear; }
+
+/* ── EMPTY STATE ── */
+.empty-state { text-align: center; padding: 2rem 1rem; }
+.empty-state-title { font-weight: 800; font-size: 0.95rem; margin-bottom: 0.5rem; }
+.empty-state-sub { font-size: 0.7rem; color: rgba(26,26,26,0.5); line-height: 1.5; }
+
+/* ── FAB ── */
+.fab {
+  position: fixed; bottom: 1.6rem; right: 1.6rem; width: 60px; height: 60px; border-radius: 50%;
+  background: var(--red); color: #fff; border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink);
+  font-size: 1.9rem; font-weight: 700; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; z-index: 10; line-height: 1;
+}
+.fab:active { background: var(--red-dim); box-shadow: 1px 1px 0 var(--ink); }
+.fab.hidden { display: none; }
+
+/* ── ALARM OVERLAY ── */
+.alarm-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(244,239,227,0.97);
+  z-index: 100; flex-direction: column; align-items: center; justify-content: center;
+  gap: 1.5rem; padding: 2rem;
+}
+.alarm-overlay.active { display: flex; }
+.alarm-msg {
+  font-weight: 800; font-size: 1.3rem; letter-spacing: 0.1em; color: var(--red);
+  text-align: center; animation: alarm-pulse 0.9s ease-in-out infinite;
+}
+@keyframes alarm-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+.alarm-sub { font-size: 0.65rem; letter-spacing: 0.22em; color: rgba(26,26,26,0.45); text-transform: uppercase; text-align: center; }
+.alarm-dismiss {
+  font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 0.78rem;
+  letter-spacing: 0.13em; text-transform: uppercase; padding: 0.8rem 3rem;
+  cursor: pointer; background: var(--red); color: #fff; border: 3px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="label-top">Decimal Time</div>
+  <div class="label-sub">count · organizer · decimal time</div>
+  <div class="bauhaus-mark">
+    <span class="mark-circle"></span>
+    <span class="mark-square"></span>
+    <span class="mark-triangle"></span>
+  </div>
+</div>
+
+<!-- ══ HOME VIEW ══ -->
+<div class="app-wrap" id="home-panel">
+  <div class="card card-accent-blue empty-state hidden" id="empty-state">
+    <div class="empty-state-title">No timers yet</div>
+    <div class="empty-state-sub">Tap the + button below to create a count-up or count-down timer in decimal time (10 hours a day, 100 minutes an hour, 100 seconds a minute).</div>
+  </div>
+  <div class="timer-list" id="timer-list"></div>
+</div>
+
+<!-- ══ ADD VIEW ══ -->
+<div class="app-wrap hidden" id="add-panel">
+
+  <div class="card card-accent-red">
+    <div class="section-title">Timer Name</div>
+    <input type="text" id="timer-name-input" class="text-input" placeholder="e.g. Workout, Focus Block" maxlength="40">
+  </div>
+
+  <div class="card card-accent-yellow" id="icon-card">
+    <div class="section-title">Icon (optional)</div>
+    <div class="icon-grid" id="icon-grid"></div>
+  </div>
+
+  <div class="card card-accent-blue" id="type-card">
+    <div class="toggle-row">
+      <span class="toggle-label" id="type-label">Count Down</span>
+      <label class="switch">
+        <input type="checkbox" id="type-toggle" onchange="toggleType()">
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="note-text" id="type-note">Off = Count Down, set a duration below. On = Count Up, starts immediately from zero.</div>
+  </div>
+
+  <div class="card card-accent-yellow" id="duration-card">
+    <div class="section-title">Duration &middot; Decimal HH : MM : SS</div>
+    <div class="duration-preview" id="duration-preview">00:05:00</div>
+
+    <div class="unit-row">
+      <span class="unit-label">Hours</span>
+      <div class="unit-controls">
+        <button class="unit-btn" onclick="nudgeUnit('h',-1)">&minus;</button>
+        <span class="unit-value" id="val-h">0</span>
+        <button class="unit-btn" onclick="nudgeUnit('h',1)">+</button>
+      </div>
+    </div>
+
+    <div class="unit-row">
+      <span class="unit-label">Minutes</span>
+      <div class="unit-controls">
+        <button class="unit-btn big" onclick="nudgeUnit('m',-10)">&minus;10</button>
+        <button class="unit-btn" onclick="nudgeUnit('m',-1)">&minus;</button>
+        <span class="unit-value" id="val-m">5</span>
+        <button class="unit-btn" onclick="nudgeUnit('m',1)">+</button>
+        <button class="unit-btn big" onclick="nudgeUnit('m',10)">+10</button>
+      </div>
+    </div>
+
+    <div class="unit-row">
+      <span class="unit-label">Seconds</span>
+      <div class="unit-controls">
+        <button class="unit-btn big" onclick="nudgeUnit('s',-10)">&minus;10</button>
+        <button class="unit-btn" onclick="nudgeUnit('s',-1)">&minus;</button>
+        <span class="unit-value" id="val-s">0</span>
+        <button class="unit-btn" onclick="nudgeUnit('s',1)">+</button>
+        <button class="unit-btn big" onclick="nudgeUnit('s',10)">+10</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-accent-red" id="alarm-card">
+    <div class="section-title">Alarm Sound</div>
+    <select id="alarm-select" class="text-input" onchange="onAlarmChange()">
+      <option value="0">Soft Chime</option>
+      <option value="1">Gentle Bell</option>
+      <option value="2">Wind Chime</option>
+      <option value="3">Soft Bloom</option>
+    </select>
+    <div class="note-text">Plays on repeat until you dismiss it, with a notification and a vibration.</div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn" onclick="goToHome()">Cancel</button>
+    <button class="btn btn-primary" onclick="createTimer()">Create Timer</button>
+  </div>
+
+</div>
+
+<button class="fab" id="fab" onclick="goToAdd()">+</button>
+
+<!-- ══ ALARM OVERLAY ══ -->
+<div class="alarm-overlay" id="alarm-overlay">
+  <div class="alarm-msg" id="alarm-msg">TIME'S UP</div>
+  <div class="alarm-sub" id="alarm-sub"></div>
+  <button class="alarm-dismiss" onclick="dismissAlarm()">Dismiss</button>
+</div>
+
+<!-- Silent looping audio track — keeps an active media session so the
+     browser is less likely to fully suspend the page's audio/timers
+     when the phone screen locks or the app is backgrounded. Best-effort:
+     iOS does not guarantee background execution for home-screen web apps,
+     but this plus the Wake Lock API meaningfully improves the odds that a
+     countdown's alarm actually plays if the phone is left alone. -->
+<audio id="keep-alive-audio" loop playsinline src="data:audio/wav;base64,__AUDIO_B64__"></audio>
+
+<script>
+document.addEventListener('selectstart', function (e) { e.preventDefault(); });
+document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
+// ══════════════════════════════════════════════════════
+//  DECIMAL TIME CONSTANTS
+//  1 decimal day = 10 decimal hours = 1000 decimal minutes
+//  = 100000 decimal seconds, mapped evenly onto 24 real hours,
+//  so 1 decimal second = 864 real ms (86,400,000 / 100,000).
+// ══════════════════════════════════════════════════════
+const MS_PER_DS = 864;
+const DS_PER_MIN = 100;
+const DS_PER_HOUR = 10000;
+
+function pad2(n) { return String(n).padStart(2, '0'); }
+function hmsToDs(h, m, s) { return h * DS_PER_HOUR + m * DS_PER_MIN + s; }
+function dsToMs(ds) { return ds * MS_PER_DS; }
+function msToDs(ms) { return ms / MS_PER_DS; }
+
+function formatMsAsHMS(ms) {
+  const ds = Math.max(0, Math.floor(msToDs(ms)));
+  const h = Math.floor(ds / DS_PER_HOUR);
+  const rem = ds % DS_PER_HOUR;
+  const m = Math.floor(rem / DS_PER_MIN);
+  const s = Math.floor(rem % DS_PER_MIN);
+  return `${pad2(h)}:${pad2(m)}:${pad2(s)}`;
+}
+
+// ══════════════════════════════════════════════════════
+//  ICONS — simple black line icons, toggled per timer
+// ══════════════════════════════════════════════════════
+const ICON_DEFS = {
+  medication: { label: 'Meds', inner: '<rect x="4" y="9" width="16" height="6" rx="3" transform="rotate(45 12 12)"/><line x1="12" y1="7" x2="12" y2="17" transform="rotate(45 12 12)"/>' },
+  cooking:    { label: 'Cooking', inner: '<path d="M4 10h16v5a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4v-5z"/><line x1="2" y1="10" x2="4" y2="10"/><line x1="20" y1="10" x2="22" y2="10"/><line x1="9" y1="4" x2="9" y2="7"/><line x1="12" y1="3" x2="12" y2="7"/><line x1="15" y1="4" x2="15" y2="7"/>' },
+  workout:    { label: 'Workout', inner: '<rect x="1.5" y="9.5" width="3" height="5"/><rect x="19.5" y="9.5" width="3" height="5"/><rect x="4.5" y="7.5" width="2" height="9"/><rect x="17.5" y="7.5" width="2" height="9"/><line x1="6.5" y1="12" x2="17.5" y2="12"/>' },
+  sleep:      { label: 'Sleep', inner: '<path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>' },
+  meditate:   { label: 'Focus', inner: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/>' },
+  laundry:    { label: 'Laundry', inner: '<rect x="4" y="3" width="16" height="18" rx="2"/><circle cx="12" cy="13" r="5"/><circle cx="12" cy="13" r="2"/><line x1="7" y1="6" x2="8" y2="6"/><line x1="10" y1="6" x2="11" y2="6"/>' },
+  coffee:     { label: 'Coffee', inner: '<path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8z"/><path d="M17 9h2a2 2 0 0 1 0 4h-2"/><line x1="7" y1="3" x2="7" y2="5"/><line x1="10" y1="2" x2="10" y2="5"/>' },
+  book:       { label: 'Study', inner: '<path d="M12 6c-2-1.5-5-2-8-1.5v13c3-0.5 6 0 8 1.5 2-1.5 5-2 8-1.5v-13c-3-0.5-6 0-8 1.5z"/><line x1="12" y1="6" x2="12" y2="19"/>' },
+  work:       { label: 'Work', inner: '<rect x="3" y="8" width="18" height="12" rx="2"/><path d="M9 8V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><line x1="3" y1="13" x2="21" y2="13"/>' },
+  shower:     { label: 'Shower', inner: '<path d="M6 9a6 6 0 0 1 12 0"/><line x1="12" y1="9" x2="12" y2="11"/><line x1="8" y1="14" x2="8" y2="15"/><line x1="12" y1="14" x2="12" y2="15"/><line x1="16" y1="14" x2="16" y2="15"/><line x1="8" y1="18" x2="8" y2="19"/><line x1="12" y1="18" x2="12" y2="19"/><line x1="16" y1="18" x2="16" y2="19"/>' },
+  cleaning:   { label: 'Cleaning', inner: '<line x1="18" y1="3" x2="9" y2="12"/><path d="M9 12 4 20l3 1 2-3 3-3z"/>' },
+  gaming:     { label: 'Gaming', inner: '<rect x="3" y="9" width="18" height="8" rx="4"/><line x1="7" y1="11" x2="7" y2="15"/><line x1="5" y1="13" x2="9" y2="13"/><circle cx="15" cy="12" r="1"/><circle cx="17" cy="14" r="1"/>' },
+  phone:      { label: 'Phone', inner: '<rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/>' },
+  travel:     { label: 'Travel', inner: '<path d="M3 11l18-8-8 18-2-8-8-2z"/>' },
+  water:      { label: 'Water', inner: '<path d="M12 3s7 8 7 12a7 7 0 0 1-14 0c0-4 7-12 7-12z"/>' },
+  music:      { label: 'Music', inner: '<circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/><line x1="9" y1="18" x2="9" y2="5"/><line x1="21" y1="16" x2="21" y2="3"/><line x1="9" y1="5" x2="21" y2="3"/>' }
+};
+function iconSvg(key, size) {
+  const def = ICON_DEFS[key];
+  if (!def) return '';
+  size = size || 20;
+  return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="#1A1A1A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${def.inner}</svg>`;
+}
+
+// ══════════════════════════════════════════════════════
+//  AUDIO — a click on every button, a switch tick, and
+//  4 gentle alarm tones to choose from per countdown timer
+// ══════════════════════════════════════════════════════
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+let clickNoiseBuffer = null;
+function getClickNoiseBuffer(ctx) {
+  if (!clickNoiseBuffer) {
+    const len = Math.floor(ctx.sampleRate * 0.03);
+    clickNoiseBuffer = ctx.createBuffer(1, len, ctx.sampleRate);
+    const data = clickNoiseBuffer.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 4);
+  }
+  return clickNoiseBuffer;
+}
+function playButtonClickSound() {
+  try {
+    const ctx = getAudioCtx();
+    if (ctx.state === 'suspended') ctx.resume();
+    const now = ctx.currentTime;
+    const noise = ctx.createBufferSource();
+    noise.buffer = getClickNoiseBuffer(ctx);
+    const bandpass = ctx.createBiquadFilter();
+    bandpass.type = 'bandpass';
+    bandpass.frequency.setValueAtTime(2600, now);
+    bandpass.Q.value = 0.9;
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.5, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.022);
+    noise.connect(bandpass).connect(noiseGain).connect(ctx.destination);
+    noise.start(now); noise.stop(now + 0.03);
+
+    const thock = ctx.createOscillator();
+    const thockGain = ctx.createGain();
+    thock.type = 'sine';
+    thock.frequency.setValueAtTime(180, now);
+    thock.frequency.exponentialRampToValueAtTime(90, now + 0.02);
+    thockGain.gain.setValueAtTime(0.16, now);
+    thockGain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+    thock.connect(thockGain).connect(ctx.destination);
+    thock.start(now); thock.stop(now + 0.03);
+  } catch (e) {}
+}
+// Every button in the app gets a click sound, including the alarm dismiss button.
+document.addEventListener('click', function (e) {
+  if (e.target.closest('button')) playButtonClickSound();
+}, true);
+
+function playSwitchSound(isOn) {
+  try {
+    const ctx = getAudioCtx();
+    if (ctx.state === 'suspended') ctx.resume();
+    const now = ctx.currentTime;
+    const tickLen = Math.floor(ctx.sampleRate * 0.012);
+    const tickBuffer = ctx.createBuffer(1, tickLen, ctx.sampleRate);
+    const tickData = tickBuffer.getChannelData(0);
+    for (let i = 0; i < tickLen; i++) tickData[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / tickLen, 2);
+    const tick = ctx.createBufferSource();
+    tick.buffer = tickBuffer;
+    const tickFilter = ctx.createBiquadFilter();
+    tickFilter.type = 'highpass';
+    tickFilter.frequency.value = 4500;
+    const tickGain = ctx.createGain();
+    tickGain.gain.setValueAtTime(0.35, now);
+    tickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.014);
+    tick.connect(tickFilter).connect(tickGain).connect(ctx.destination);
+    tick.start(now); tick.stop(now + 0.02);
+
+    const thonk = ctx.createOscillator();
+    const thonkGain = ctx.createGain();
+    thonk.type = 'triangle';
+    const startFreq = isOn ? 260 : 170;
+    const endFreq = isOn ? 150 : 100;
+    thonk.frequency.setValueAtTime(startFreq, now + 0.006);
+    thonk.frequency.exponentialRampToValueAtTime(endFreq, now + 0.05);
+    thonkGain.gain.setValueAtTime(0, now);
+    thonkGain.gain.setValueAtTime(0.22, now + 0.006);
+    thonkGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+    thonk.connect(thonkGain).connect(ctx.destination);
+    thonk.start(now); thonk.stop(now + 0.09);
+  } catch (e) {}
+}
+
+function playSoftChime(ctx) {
+  const now = ctx.currentTime;
+  [523.25, 659.25, 783.99].forEach((f, i) => {
+    const t = now + i * 0.2;
+    const osc = ctx.createOscillator(), gain = ctx.createGain();
+    osc.type = 'sine'; osc.frequency.setValueAtTime(f, t);
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.2, t + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 1.6);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t); osc.stop(t + 1.7);
+  });
+  return 2000;
+}
+function playGentleBell(ctx) {
+  const now = ctx.currentTime;
+  [392, 588, 784].forEach((f, i) => {
+    const osc = ctx.createOscillator(), gain = ctx.createGain();
+    osc.type = 'sine'; osc.frequency.setValueAtTime(f, now);
+    gain.gain.setValueAtTime(i === 0 ? 0.22 : 0.08, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + (i === 0 ? 2.4 : 1.5));
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(now); osc.stop(now + 2.6);
+  });
+  return 2700;
+}
+function playWindChime(ctx) {
+  const now = ctx.currentTime;
+  [987.77, 1174.66, 1318.51, 1567.98, 1760].forEach((f, i) => {
+    const t = now + i * 0.14 + Math.random() * 0.03;
+    const osc = ctx.createOscillator(), gain = ctx.createGain();
+    osc.type = 'sine'; osc.frequency.setValueAtTime(f, t);
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.13, t + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 1.1);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t); osc.stop(t + 1.2);
+  });
+  return 1500;
+}
+function playSoftBloom(ctx) {
+  const now = ctx.currentTime;
+  [261.63, 329.63, 392, 523.25].forEach((f, i) => {
+    const t = now + i * 0.12;
+    const osc = ctx.createOscillator(), gain = ctx.createGain();
+    osc.type = 'triangle'; osc.frequency.setValueAtTime(f, t);
+    gain.gain.setValueAtTime(0.15, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 1.3);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t); osc.stop(t + 1.4);
+  });
+  return 1600;
+}
+const ALARM_TONES = [playSoftChime, playGentleBell, playWindChime, playSoftBloom];
+
+function previewAlarmSound(idx) {
+  try {
+    const ctx = getAudioCtx();
+    if (ctx.state === 'suspended') ctx.resume();
+    ALARM_TONES[idx](ctx);
+  } catch (e) {}
+}
+function onAlarmChange() {
+  addAlarm = parseInt(document.getElementById('alarm-select').value, 10);
+  previewAlarmSound(addAlarm);
+}
+
+let alarmLoopTimeout = null;
+function startAlarmLoop(toneIdx) {
+  try {
+    const ctx = getAudioCtx();
+    if (ctx.state === 'suspended') ctx.resume();
+    const play = () => {
+      const ms = ALARM_TONES[toneIdx](ctx);
+      fireLocalNotification();
+      alarmLoopTimeout = setTimeout(play, ms + 700);
+    };
+    play();
+  } catch (e) {}
+}
+function stopAlarmLoop() {
+  if (alarmLoopTimeout) { clearTimeout(alarmLoopTimeout); alarmLoopTimeout = null; }
+}
+function fireLocalNotification() {
+  try {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification("Decimal Time", { body: (alarmQueue[0] ? alarmQueue[0].name : 'Timer') + ' is done', tag: 'decimal-time' });
+    }
+  } catch (e) {}
+}
+function requestNotifyPermission() {
+  try { if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } catch (e) {}
+}
+function requestPersistentStorage() {
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+}
+
+// ══════════════════════════════════════════════════════
+//  SCREEN WAKE + BACKGROUND AUDIO SESSION
+//  Both are started whenever a timer is running so that, if
+//  the phone is left alone, the app is less likely to be fully
+//  suspended and the eventual alarm sound is more likely to
+//  actually play when a countdown reaches zero.
+// ══════════════════════════════════════════════════════
+let wakeLock = null;
+let noSleepVideo = null;
+function initNoSleepFallback() {
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1; canvas.height = 1;
+    const cctx = canvas.getContext('2d');
+    cctx.fillRect(0, 0, 1, 1);
+    const stream = canvas.captureStream(1);
+    const video = document.createElement('video');
+    video.setAttribute('playsinline', '');
+    video.muted = true;
+    video.srcObject = stream;
+    noSleepVideo = video;
+  } catch (e) { noSleepVideo = null; }
+}
+initNoSleepFallback();
+async function requestWakeLockReal() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    }
+  } catch (e) { wakeLock = null; }
+}
+async function releaseWakeLockReal() {
+  try { if (wakeLock) { await wakeLock.release(); wakeLock = null; } } catch (e) {}
+}
+const keepAliveAudio = document.getElementById('keep-alive-audio');
+function startBackgroundAudioSession() {
+  try { if (keepAliveAudio) { keepAliveAudio.volume = 0.01; keepAliveAudio.play().catch(() => {}); } } catch (e) {}
+}
+function stopBackgroundAudioSession() {
+  try { if (keepAliveAudio) keepAliveAudio.pause(); } catch (e) {}
+}
+function keepScreenAwake() {
+  requestWakeLockReal();
+  if (noSleepVideo) noSleepVideo.play().catch(() => {});
+  startBackgroundAudioSession();
+}
+function allowScreenSleep() {
+  releaseWakeLockReal();
+  if (noSleepVideo) noSleepVideo.pause();
+  stopBackgroundAudioSession();
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    catchUpFinishedTimers();
+    if (anyTimerRunning()) keepScreenAwake();
+  }
+});
+
+// ══════════════════════════════════════════════════════
+//  TIMER STORAGE
+// ══════════════════════════════════════════════════════
+const STORAGE_KEY = 'decimalTimeTimers';
+let timers = [];
+let alarmQueue = [];
+
+function loadTimers() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    timers = raw ? JSON.parse(raw) : [];
+  } catch (e) { timers = []; }
+}
+function saveTimers() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(timers)); } catch (e) {}
+}
+function uid() { return 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+function anyTimerRunning() { return timers.some(t => t.running); }
+function computeElapsedMs(t) { return t.accumulatedMs + (t.running ? Date.now() - t.startTime : 0); }
+function computeRemainingMs(t) { return Math.max(0, t.totalMs - computeElapsedMs(t)); }
+
+// ══════════════════════════════════════════════════════
+//  ADD-TIMER FORM STATE
+// ══════════════════════════════════════════════════════
+let addType = 'down';
+let hms = { h: 0, m: 5, s: 0 };
+let addAlarm = 0;
+let addIcon = null;
+
+function buildIconGrid() {
+  const grid = document.getElementById('icon-grid');
+  let html = `<button type="button" class="icon-btn none-btn selected" data-icon="" onclick="selectIcon(null,this)"><span>No Icon</span></button>`;
+  Object.keys(ICON_DEFS).forEach(key => {
+    html += `<button type="button" class="icon-btn" data-icon="${key}" onclick="selectIcon('${key}',this)">${iconSvg(key, 20)}<span>${ICON_DEFS[key].label}</span></button>`;
+  });
+  grid.innerHTML = html;
+}
+function selectIcon(key, btn) {
+  addIcon = key;
+  document.querySelectorAll('.icon-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function goToAdd() {
+  document.getElementById('timer-name-input').value = '';
+  document.getElementById('type-toggle').checked = false;
+  addType = 'down';
+  hms = { h: 0, m: 5, s: 0 };
+  addAlarm = 0;
+  addIcon = null;
+  document.getElementById('alarm-select').value = '0';
+  buildIconGrid();
+  updateTypeUI();
+  updateHmsUI();
+  document.getElementById('home-panel').classList.add('hidden');
+  document.getElementById('add-panel').classList.remove('hidden');
+  document.getElementById('fab').classList.add('hidden');
+}
+function goToHome() {
+  document.getElementById('add-panel').classList.add('hidden');
+  document.getElementById('home-panel').classList.remove('hidden');
+  document.getElementById('fab').classList.remove('hidden');
+}
+
+function toggleType() {
+  const isUp = document.getElementById('type-toggle').checked;
+  addType = isUp ? 'up' : 'down';
+  playSwitchSound(isUp);
+  updateTypeUI();
+}
+function updateTypeUI() {
+  const isUp = addType === 'up';
+  document.getElementById('type-label').textContent = isUp ? 'Count Up' : 'Count Down';
+  document.getElementById('type-note').textContent = isUp
+    ? 'On = Count Up, starts immediately from zero when created.'
+    : 'Off = Count Down, set a duration below. It waits on the home screen until you press Start.';
+  document.getElementById('type-card').classList.toggle('up-active', isUp);
+  document.getElementById('duration-card').classList.toggle('hidden', isUp);
+  document.getElementById('alarm-card').classList.toggle('hidden', isUp);
+}
+
+function nudgeUnit(unit, delta) {
+  const maxes = { h: 9, m: 99, s: 99 };
+  hms[unit] = Math.max(0, Math.min(maxes[unit], hms[unit] + delta));
+  updateHmsUI();
+}
+function updateHmsUI() {
+  document.getElementById('val-h').textContent = hms.h;
+  document.getElementById('val-m').textContent = hms.m;
+  document.getElementById('val-s').textContent = hms.s;
+  document.getElementById('duration-preview').textContent = `${pad2(hms.h)}:${pad2(hms.m)}:${pad2(hms.s)}`;
+}
+
+function createTimer() {
+  const nameInput = document.getElementById('timer-name-input');
+  const name = nameInput.value.trim() || (addType === 'up' ? 'Count Up' : 'Count Down');
+
+  requestPersistentStorage();
+  requestNotifyPermission();
+
+  let t;
+  if (addType === 'down') {
+    const totalMs = dsToMs(hmsToDs(hms.h, hms.m, hms.s));
+    if (totalMs <= 0) { nameInput.focus(); return; }
+    t = {
+      id: uid(), name, type: 'down', totalMs, icon: addIcon, alarm: addAlarm,
+      accumulatedMs: 0, running: false, startTime: null, finished: false
+    };
+  } else {
+    t = {
+      id: uid(), name, type: 'up', icon: addIcon,
+      accumulatedMs: 0, running: true, startTime: Date.now(), finished: false
+    };
+  }
+
+  timers.unshift(t);
+  saveTimers();
+  goToHome();
+  render();
+  if (t.running) { keepScreenAwake(); ensureTicking(); }
+}
+
+function toggleRun(id) {
+  const t = timers.find(x => x.id === id);
+  if (!t || t.finished) return;
+  if (t.running) {
+    t.accumulatedMs = computeElapsedMs(t);
+    t.running = false;
+    t.startTime = null;
+  } else {
+    t.startTime = Date.now();
+    t.running = true;
+    keepScreenAwake();
+    ensureTicking();
+  }
+  saveTimers();
+  render();
+}
+
+function resetTimerCard(id) {
+  const t = timers.find(x => x.id === id);
+  if (!t) return;
+  t.accumulatedMs = 0;
+  t.finished = false;
+  if (t.running) t.startTime = Date.now();
+  else t.startTime = null;
+  saveTimers();
+  render();
+}
+
+function deleteTimer(id) {
+  if (!confirm('Delete this timer?')) return;
+  timers = timers.filter(x => x.id !== id);
+  alarmQueue = alarmQueue.filter(x => x.id !== id);
+  saveTimers();
+  render();
+}
+
+// ══════════════════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════════════════
+function timerCardHTML(t) {
+  const elapsed = computeElapsedMs(t);
+  let readoutClass = t.type;
+  let readoutText, progressHTML = '', badgeClass = t.type, badgeText = t.type === 'down' ? 'Count Down' : 'Count Up';
+  let btnLabel;
+
+  if (t.type === 'down') {
+    const remaining = t.finished ? 0 : computeRemainingMs(t);
+    readoutText = formatMsAsHMS(remaining);
+    const frac = t.totalMs > 0 ? Math.max(0, Math.min(1, remaining / t.totalMs)) : 0;
+    progressHTML = `<div class="timer-progress-track"><div class="timer-progress-fill" style="width:${(frac * 100).toFixed(2)}%"></div></div>`;
+    if (t.finished) { readoutClass = 'finished'; badgeClass = 'finished'; badgeText = 'Finished'; btnLabel = 'Reset to run again'; }
+    else btnLabel = t.running ? 'Pause' : (t.accumulatedMs > 0 ? 'Resume' : 'Start');
+  } else {
+    readoutText = formatMsAsHMS(elapsed);
+    btnLabel = t.running ? 'Pause' : 'Resume';
+  }
+
+  const disabledAttr = (t.type === 'down' && t.finished) ? 'disabled' : '';
+  const iconHTML = t.icon ? `<span class="timer-icon">${iconSvg(t.icon, 18)}</span>` : '';
+
+  return `
+    <div class="card card-accent-${t.type === 'down' ? 'red' : 'blue'} timer-card" data-id="${t.id}">
+      <div class="timer-card-top">
+        <div>
+          <div class="timer-name-row">${iconHTML}<span class="timer-name">${escapeHTML(t.name)}</span></div>
+          <span class="timer-badge ${badgeClass}">${badgeText}</span>
+        </div>
+        <button class="timer-delete" onclick="deleteTimer('${t.id}')">&times;</button>
+      </div>
+      <div class="timer-readout ${readoutClass}">${readoutText}</div>
+      ${progressHTML}
+      <div class="btn-row">
+        <button class="btn" ${disabledAttr} onclick="toggleRun('${t.id}')">${btnLabel}</button>
+        <button class="btn btn-danger-light" onclick="resetTimerCard('${t.id}')">Reset</button>
+      </div>
+    </div>
+  `;
+}
+
+function escapeHTML(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function render() {
+  const list = document.getElementById('timer-list');
+  const empty = document.getElementById('empty-state');
+  if (timers.length === 0) {
+    empty.classList.remove('hidden');
+    list.innerHTML = '';
+    return;
+  }
+  empty.classList.add('hidden');
+  list.innerHTML = timers.map(timerCardHTML).join('');
+}
+
+// ══════════════════════════════════════════════════════
+//  TICK LOOP
+// ══════════════════════════════════════════════════════
+let tickRAF = null;
+function ensureTicking() {
+  if (tickRAF) return;
+  tickRAF = requestAnimationFrame(tick);
+}
+function tick() {
+  tickRAF = null;
+  let stillRunning = false;
+  let justFinished = false;
+
+  timers.forEach(t => {
+    if (!t.running) return;
+    stillRunning = true;
+    if (t.type === 'down' && !t.finished) {
+      const remaining = computeRemainingMs(t);
+      if (remaining <= 0) {
+        t.accumulatedMs = t.totalMs;
+        t.running = false;
+        t.startTime = null;
+        t.finished = true;
+        alarmQueue.push({ id: t.id, name: t.name, alarm: t.alarm || 0 });
+        justFinished = true;
+      }
+    }
+  });
+
+  render();
+  saveTimers();
+
+  if (justFinished && alarmQueue.length && !document.getElementById('alarm-overlay').classList.contains('active')) {
+    showNextAlarm();
+  }
+  if (!anyTimerRunning()) allowScreenSleep();
+  if (stillRunning) tickRAF = requestAnimationFrame(tick);
+}
+
+// Catches any countdown that reached zero while the app was closed or
+// backgrounded, so the alarm still fires as soon as it's opened again.
+function catchUpFinishedTimers() {
+  let found = false;
+  timers.forEach(t => {
+    if (t.type === 'down' && t.running && !t.finished && computeRemainingMs(t) <= 0) {
+      t.accumulatedMs = t.totalMs; t.running = false; t.startTime = null; t.finished = true;
+      alarmQueue.push({ id: t.id, name: t.name, alarm: t.alarm || 0 });
+      found = true;
+    }
+  });
+  if (found) { saveTimers(); render(); if (!document.getElementById('alarm-overlay').classList.contains('active')) showNextAlarm(); }
+}
+
+function showNextAlarm() {
+  if (!alarmQueue.length) return;
+  const next = alarmQueue[0];
+  document.getElementById('alarm-msg').textContent = "TIME'S UP";
+  document.getElementById('alarm-sub').textContent = next.name;
+  document.getElementById('alarm-overlay').classList.add('active');
+  try { if (navigator.vibrate) navigator.vibrate([40, 60, 40]); } catch (e) {}
+  startAlarmLoop(next.alarm || 0);
+}
+function dismissAlarm() {
+  stopAlarmLoop();
+  alarmQueue.shift();
+  document.getElementById('alarm-overlay').classList.remove('active');
+  if (alarmQueue.length) setTimeout(showNextAlarm, 300);
+}
+
+// ══════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════
+loadTimers();
+buildIconGrid();
+updateTypeUI();
+updateHmsUI();
+render();
+catchUpFinishedTimers();
+if (anyTimerRunning()) { keepScreenAwake(); ensureTicking(); }
+</script>
+</body>
+</html>
